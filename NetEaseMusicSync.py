@@ -55,7 +55,6 @@ class NetEaseMusicSync:
             music_list = daily_data['recommend']
             music_name_artist = []
             exist_filename_list = os.listdir(daily_dir)
-            print exist_filename_list
             # 获取歌单中的音乐名字和演唱者
             for music in music_list:
                 music_name_artist.append((music['name'], music['artists'][0]['name'] if music['artists'] else ""))
