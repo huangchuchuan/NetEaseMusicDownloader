@@ -24,7 +24,7 @@ def random_int_string(length):
 
 class GeneralMusicDownloader:
     default_headers = {
-        'Host': '122.112.253.137',
+        'Host': 'lab.mkblog.cn',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:57.0) Gecko/20100101 Firefox/57.0',
         'Accept': '*/*',
         'Accept-Language': 'en-US,en;q=0.5',
@@ -55,7 +55,7 @@ class GeneralMusicDownloader:
 
     source_list = ['netease', 'tencent', 'xiami', 'kugou', 'baidu']  # 下载源
 
-    api_url = 'http://122.112.253.137/music/api.php'
+    api_url = 'http://lab.mkblog.cn/music/api.php'
 
     default_download_folder = 'music'
     default_pic_folder = 'pic'
