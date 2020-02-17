@@ -2,9 +2,15 @@
 # @Author : Huangcc
 
 import os
+import re
 import datetime
+import traceback
 from NetEaseApi import NetEaseApi
-from GeneralMusicDownloader import GeneralMusicDownloader
+from TiantianJingtingMusicDownloader import TiantianJingtiingMusicDownloader
+
+
+def to_win_safe(s):
+    return re.sub('[\/:*?"<>|]', '-', s)
 
 
 class NetEaseMusicSync:
@@ -12,16 +18,22 @@ class NetEaseMusicSync:
         self.cellphone = cellphone
         self.password = password
         self.netease_api = NetEaseApi()
-        self.downloader = GeneralMusicDownloader()
+        self.downloader = TiantianJingtiingMusicDownloader()
 
     def login(self):
         user_data = self.netease_api.cellphone_login(self.cellphone, self.password)
+        if user_data["code"] != 200:
+            raise ValueError("login fail! phone: %s, password: %s, response: %s" %
+                             (self.cellphone, self.password, user_data))
         return user_data['account']['id']
 
     def sync_song_lists(self, uid):
         play_list = self.netease_api.get_play_list(uid)
         for music_list in play_list['playlist']:
             list_name = music_list['name']
+            # 去除特殊字符
+            list_name = to_win_safe(list_name)
+
             music_dir = os.path.join('music', list_name)
             if not os.path.exists(music_dir):
                 os.mkdir(music_dir)
@@ -32,7 +44,7 @@ class NetEaseMusicSync:
                 exist_filename_list = os.listdir(music_dir)
                 # 获取歌单中的音乐名字和演唱者
                 for music in music_list_info['result']['tracks']:
-                    music_name_artist.append((music['name'], music['artists'][0]['name'] if music['artists'] else ""))
+                    music_name_artist.append((to_win_safe(music['name']), to_win_safe(music['artists'][0]['name']) if music['artists'] else ""))
                 # 过滤已下载的音乐
                 music_name_artist = filter(lambda x: ('%s - %s.mp3' % (x[1], x[0])) not in exist_filename_list,
                                            music_name_artist)
@@ -40,8 +52,11 @@ class NetEaseMusicSync:
                 num_of_music = len(music_name_artist)
                 curr = 1
                 for name, artist in music_name_artist:
-                    print '-*- %d/%d downloading the song %s from list %s -*-' % (curr, num_of_music, name, list_name)
-                    self.downloader.search_and_download_song('%s %s' % (name, artist), music_dir, None)
+                    try:
+                        print '-*- %d/%d downloading the song %s from list %s -*-' % (curr, num_of_music, name, list_name)
+                        self.downloader.search_and_download_song('%s %s' % (name, artist), music_dir, None)
+                    except Exception:
+                        traceback.print_exc()
                     curr += 1
 
     def sync_daily_recommend(self):
